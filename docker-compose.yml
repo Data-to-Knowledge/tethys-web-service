@@ -1,0 +1,33 @@
+version: '3'
+
+services:
+  db:
+    image: mongo:4.2-bionic
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+    command: --wiredTigerJournalCompressor zstd --wiredTigerCollectionBlockCompressor zstd
+    ports:
+      - "27017:27017"
+  db-initialize:
+    image: tethysts/tethys-db-initialize:dev
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+      DATABASE: tethys
+      READER_USERNAME: reader
+      READER_PASSWORD: reader
+      RW_USERNAME: readwriter
+      RW_PASSWORD: readwriter
+    depends_on:
+      - "db"
+  updater:
+    image: tethysts/tethys-db-updater:dev
+    volumes:
+      - "/media/sdb1/Projects/git/tethys/tethys-db-update/input.yml:/input.yml"
+    environment:
+      DATABASE: tethys
+      RW_USERNAME: readwriter
+      RW_PASSWORD: readwriter
+    depends_on:
+      - "db-initialize"

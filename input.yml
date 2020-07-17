@@ -1,0 +1,15 @@
+scheduling:
+  delay: 12
+  frequency: 86400
+
+datasets:
+  - feature: atmosphere
+    parameter: precipitation
+    method: sensor_recording
+    processing_code: '1'
+    owner: ECan
+    aggregation_statistic: cumulative
+    frequency_interval: '1H'
+    utc_offset: '0H'
+
+sites: ['217810']
