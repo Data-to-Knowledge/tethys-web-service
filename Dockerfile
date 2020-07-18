@@ -1,4 +1,4 @@
-FROM python:3.8
+FROM tiangolo/uvicorn-gunicorn-fastapi:python3.8
 
 # RUN apt-get update && apt-get install -y libspatialindex-dev python-rtree
 
@@ -15,7 +15,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Apply cron job
 # RUN crontab /etc/cron.d/tethys-cron
 
-COPY parameters.yml main.py utils.py ./
+COPY ./app /app
 
 # CMD ["cron", "-f"]
-CMD ["python", "-u", "main.py"]
+# CMD ["python", "-u", "main.py"]

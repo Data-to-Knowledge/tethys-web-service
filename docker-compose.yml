@@ -25,9 +25,11 @@ services:
     image: tethysts/tethys-db-updater:dev
     volumes:
       - "/media/sdb1/Projects/git/tethys/tethys-db-update/input.yml:/input.yml"
-    environment:
-      DATABASE: tethys
-      RW_USERNAME: readwriter
-      RW_PASSWORD: readwriter
     depends_on:
       - "db-initialize"
+  web-service:
+    image: web-service
+    depends_on:
+      - "db-initialize"
+    ports:
+      - "80:80"
