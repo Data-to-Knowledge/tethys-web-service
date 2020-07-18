@@ -54,7 +54,7 @@ base_url = '/tethys/data/'
 
 app = FastAPI()
 
-client = MongoClient(db_dict['HOST'], password=db_dict['RW_PASSWORD'], username=db_dict['RW_USERNAME'], authSource=db_dict['DATABASE'])
+client = MongoClient(db_dict['HOST'], password=db_dict['PASSWORD'], username=db_dict['USERNAME'], authSource=db_dict['DATABASE'])
 db = client[db_dict['DATABASE']]
 
 
