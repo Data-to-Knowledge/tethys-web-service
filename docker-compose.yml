@@ -28,7 +28,7 @@ services:
     depends_on:
       - "db-initialize"
   web-service:
-    image: web-service
+    image: tethysts/tethys-web-service:dev
     depends_on:
       - "db-initialize"
     ports:
