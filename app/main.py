@@ -109,7 +109,7 @@ async def get_datasets():
 
 
 @app.post(base_url + 'sampling_sites')
-async def get_sites(dataset_id: str, polygon: Polygon = None):
+async def get_sites(dataset_id: str, polygon: Polygon = None, compression: Optional[Compress] = None):
     ds_coll = db['dataset']
     try:
         ds_id = ds_coll.find({'_id': ObjectId(dataset_id)}, {'_id': 1}).limit(1)[0]['_id']
@@ -131,7 +131,14 @@ async def get_sites(dataset_id: str, polygon: Polygon = None):
         # s.pop('site_id')
         s['site_id'] = str(s['site_id'])
 
-    return sites1
+    if compression == 'zstd':
+        cctx = zstd.ZstdCompressor(level=1)
+        b_ts1 = json.dumps(sites1, default=json_util.default).encode()
+        c_obj = cctx.compress(b_ts1)
+
+        return Response(c_obj, media_type='application/zstd')
+    else:
+        return sites1
 
 
 @app.get(base_url + 'time_series_result')
@@ -163,12 +170,17 @@ async def get_data(dataset_id: str, site_id: str, from_date: Optional[datetime] 
 
 
 
-
-
-to_date = '2020-04-01T00:00'
-from_date = '2020-01-01T00:00'
-dataset_id = '5f112670e07ba4f248b22969'
-site_id = '5f112673e07ba4f248b2296a'
+# r1 = requests.get('http://tethys-ts.duckdns.org/tethys/data/time_series_result?dataset_id=5f12547a2fae6caf4324a86a&site_id=5f125cff2fae6caf4322baa7&from_date=2020-01-01T00%3A00&compression=zstd')
+#
+#
+# ddtx = zstd.ZstdDecompressor()
+#
+# j1 = json.loads(ddtx.decompress(r1.content))
+#
+# to_date = '2020-04-01T00:00'
+# from_date = '2020-01-01T00:00'
+# dataset_id = '5f112670e07ba4f248b22969'
+# site_id = '5f112673e07ba4f248b2296a'
 #
 #
 #
