@@ -8,6 +8,7 @@ from bson.objectid import ObjectId
 from fastapi import FastAPI, Response, Query
 from pydantic import BaseModel
 import yaml
+import datetime
 from datetime import datetime
 # from fastapi.responses import StreamingResponse
 # import pickle
@@ -23,6 +24,12 @@ with open(os.path.join(base_dir, 'parameters.yml')) as param:
     param = yaml.safe_load(param)
 
 db_dict = param['db']
+
+
+def default(obj):
+    if isinstance(obj, (datetime.date, datetime.datetime)):
+        return obj.isoformat()
+
 
 class Dataset(BaseModel):
     feature: str
@@ -149,6 +156,8 @@ async def get_data(dataset_id: str, site_id: str, from_date: Optional[datetime] 
         q_dict['from_date'].update({'$gte': from_date})
     if to_date is not None:
         q_dict['from_date'].update({'$lte': to_date})
+    if not q_dict['from_date']:
+        q_dict.pop('from_date')
     if properties:
         f_dict.pop('properties')
     if modified_date:
@@ -161,7 +170,7 @@ async def get_data(dataset_id: str, site_id: str, from_date: Optional[datetime] 
     # df1.to_csv(sio, index=False)
     if compression == 'zstd':
         cctx = zstd.ZstdCompressor(level=1)
-        b_ts1 = json.dumps(ts1, default=json_util.default).encode()
+        b_ts1 = json.dumps(ts1, default=default).encode()
         c_obj = cctx.compress(b_ts1)
 
         return Response(c_obj, media_type='application/zstd')
