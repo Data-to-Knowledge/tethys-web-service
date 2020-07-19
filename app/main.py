@@ -9,7 +9,6 @@ from fastapi import FastAPI, Response, Query
 from pydantic import BaseModel
 import yaml
 import datetime
-from datetime import datetime
 # from fastapi.responses import StreamingResponse
 # import pickle
 import json
@@ -149,7 +148,7 @@ async def get_sites(dataset_id: str, polygon: Polygon = None, compression: Optio
 
 
 @app.get(base_url + 'time_series_result')
-async def get_data(dataset_id: str, site_id: str, from_date: Optional[datetime] = None, to_date: Optional[datetime] = None, properties: Optional[bool] = False, modified_date: Optional[bool] = False, compression: Optional[Compress] = None):
+async def get_data(dataset_id: str, site_id: str, from_date: Optional[datetime.datetime] = None, to_date: Optional[datetime.datetime] = None, properties: Optional[bool] = False, modified_date: Optional[bool] = False, compression: Optional[Compress] = None):
     q_dict = {'dataset_id': ObjectId(dataset_id), 'site_id': ObjectId(site_id), 'from_date': {}}
     f_dict = {'_id': 0, 'site_id': 0, 'dataset_id': 0, 'properties': 0, 'modified_date': 0}
     if from_date is not None:
