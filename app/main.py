@@ -8,7 +8,7 @@ from bson.objectid import ObjectId
 from fastapi import FastAPI, Response, Query
 from pydantic import BaseModel
 import yaml
-from datetime import datetime
+import datetime
 # from fastapi.responses import StreamingResponse
 # import pickle
 import json
@@ -23,6 +23,12 @@ with open(os.path.join(base_dir, 'parameters.yml')) as param:
     param = yaml.safe_load(param)
 
 db_dict = param['db']
+
+
+def default(obj):
+    if isinstance(obj, (datetime.date, datetime.datetime)):
+        return obj.isoformat()
+
 
 class Dataset(BaseModel):
     feature: str
@@ -54,7 +60,7 @@ base_url = '/tethys/data/'
 
 app = FastAPI()
 
-client = MongoClient(db_dict['HOST'], password=db_dict['RW_PASSWORD'], username=db_dict['RW_USERNAME'], authSource=db_dict['DATABASE'])
+client = MongoClient(db_dict['HOST'], password=db_dict['PASSWORD'], username=db_dict['USERNAME'], authSource=db_dict['DATABASE'])
 db = client[db_dict['DATABASE']]
 
 
@@ -109,7 +115,7 @@ async def get_datasets():
 
 
 @app.post(base_url + 'sampling_sites')
-async def get_sites(dataset_id: str, polygon: Polygon = None):
+async def get_sites(dataset_id: str, polygon: Polygon = None, compression: Optional[Compress] = None):
     ds_coll = db['dataset']
     try:
         ds_id = ds_coll.find({'_id': ObjectId(dataset_id)}, {'_id': 1}).limit(1)[0]['_id']
@@ -131,17 +137,26 @@ async def get_sites(dataset_id: str, polygon: Polygon = None):
         # s.pop('site_id')
         s['site_id'] = str(s['site_id'])
 
-    return sites1
+    if compression == 'zstd':
+        cctx = zstd.ZstdCompressor(level=1)
+        b_ts1 = json.dumps(sites1, default=json_util.default).encode()
+        c_obj = cctx.compress(b_ts1)
+
+        return Response(c_obj, media_type='application/zstd')
+    else:
+        return sites1
 
 
 @app.get(base_url + 'time_series_result')
-async def get_data(dataset_id: str, site_id: str, from_date: Optional[datetime] = None, to_date: Optional[datetime] = None, properties: Optional[bool] = False, modified_date: Optional[bool] = False, compression: Optional[Compress] = None):
+async def get_data(dataset_id: str, site_id: str, from_date: Optional[datetime.datetime] = None, to_date: Optional[datetime.datetime] = None, properties: Optional[bool] = False, modified_date: Optional[bool] = False, compression: Optional[Compress] = None):
     q_dict = {'dataset_id': ObjectId(dataset_id), 'site_id': ObjectId(site_id), 'from_date': {}}
     f_dict = {'_id': 0, 'site_id': 0, 'dataset_id': 0, 'properties': 0, 'modified_date': 0}
     if from_date is not None:
         q_dict['from_date'].update({'$gte': from_date})
     if to_date is not None:
         q_dict['from_date'].update({'$lte': to_date})
+    if not q_dict['from_date']:
+        q_dict.pop('from_date')
     if properties:
         f_dict.pop('properties')
     if modified_date:
@@ -154,7 +169,7 @@ async def get_data(dataset_id: str, site_id: str, from_date: Optional[datetime] 
     # df1.to_csv(sio, index=False)
     if compression == 'zstd':
         cctx = zstd.ZstdCompressor(level=1)
-        b_ts1 = json.dumps(ts1, default=json_util.default).encode()
+        b_ts1 = json.dumps(ts1, default=default).encode()
         c_obj = cctx.compress(b_ts1)
 
         return Response(c_obj, media_type='application/zstd')
@@ -163,12 +178,17 @@ async def get_data(dataset_id: str, site_id: str, from_date: Optional[datetime] 
 
 
 
-
-
-to_date = '2020-04-01T00:00'
-from_date = '2020-01-01T00:00'
-dataset_id = '5f112670e07ba4f248b22969'
-site_id = '5f112673e07ba4f248b2296a'
+# r1 = requests.get('http://tethys-ts.duckdns.org/tethys/data/time_series_result?dataset_id=5f12547a2fae6caf4324a86a&site_id=5f125cff2fae6caf4322baa7&from_date=2020-01-01T00%3A00&compression=zstd')
+#
+#
+# ddtx = zstd.ZstdDecompressor()
+#
+# j1 = json.loads(ddtx.decompress(r1.content))
+#
+# to_date = '2020-04-01T00:00'
+# from_date = '2020-01-01T00:00'
+# dataset_id = '5f112670e07ba4f248b22969'
+# site_id = '5f112673e07ba4f248b2296a'
 #
 #
 #
