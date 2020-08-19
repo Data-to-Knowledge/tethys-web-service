@@ -9,12 +9,13 @@ from fastapi import FastAPI, Response, Query
 from pydantic import BaseModel
 import yaml
 import datetime
-# from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse
 # import pickle
 import json
 from bson import json_util
 import zstandard as zstd
 from enum import Enum
+from fastapi.encoders import jsonable_encoder
 
 
 base_dir = os.path.realpath(os.path.dirname(__file__))
@@ -24,10 +25,13 @@ with open(os.path.join(base_dir, 'parameters.yml')) as param:
 
 db_dict = param['db']
 
+## For testing
+# db_dict.update({'HOST': '127.0.0.1'})
 
-def default(obj):
-    if isinstance(obj, (datetime.date, datetime.datetime)):
-        return obj.isoformat()
+
+# def json_default(obj):
+#     if isinstance(obj, (datetime.date, datetime.datetime)):
+#         return obj.isoformat()
 
 
 class Dataset(BaseModel):
@@ -62,6 +66,7 @@ app = FastAPI()
 
 client = MongoClient(db_dict['HOST'], password=db_dict['PASSWORD'], username=db_dict['USERNAME'], authSource=db_dict['DATABASE'])
 db = client[db_dict['DATABASE']]
+
 
 
 # @app.get(base_url + 'get_datasets')
@@ -137,19 +142,21 @@ async def get_sites(dataset_id: str, polygon: Polygon = None, compression: Optio
         # s.pop('site_id')
         s['site_id'] = str(s['site_id'])
 
+    json_dict = jsonable_encoder(sites1)
+
     if compression == 'zstd':
         cctx = zstd.ZstdCompressor(level=1)
-        b_ts1 = json.dumps(sites1, default=json_util.default).encode()
+        b_ts1 = json.dumps(json_dict).encode()
         c_obj = cctx.compress(b_ts1)
 
         return Response(c_obj, media_type='application/zstd')
     else:
-        return sites1
+        return JSONResponse(json_dict)
 
 
 @app.get(base_url + 'time_series_result')
-async def get_data(dataset_id: str, site_id: str, from_date: Optional[datetime.datetime] = None, to_date: Optional[datetime.datetime] = None, properties: Optional[bool] = False, modified_date: Optional[bool] = False, compression: Optional[Compress] = None):
-    q_dict = {'dataset_id': ObjectId(dataset_id), 'site_id': ObjectId(site_id), 'from_date': {}}
+async def get_data(dataset_id: str, site_id: str, from_date: Optional[datetime.datetime] = None, to_date: Optional[datetime.datetime] = None, from_modified_date: Optional[datetime.datetime] = None, to_modified_date: Optional[datetime.datetime] = None, properties: Optional[bool] = False, modified_date: Optional[bool] = False, compression: Optional[Compress] = None):
+    q_dict = {'dataset_id': ObjectId(dataset_id), 'site_id': ObjectId(site_id), 'from_date': {}, 'modified_date': {}}
     f_dict = {'_id': 0, 'site_id': 0, 'dataset_id': 0, 'properties': 0, 'modified_date': 0}
     if from_date is not None:
         q_dict['from_date'].update({'$gte': from_date})
@@ -157,26 +164,37 @@ async def get_data(dataset_id: str, site_id: str, from_date: Optional[datetime.d
         q_dict['from_date'].update({'$lte': to_date})
     if not q_dict['from_date']:
         q_dict.pop('from_date')
+    if from_modified_date is not None:
+        q_dict['modified_date'].update({'$gte': from_modified_date})
+    if to_modified_date is not None:
+        q_dict['modified_date'].update({'$lte': to_modified_date})
+    if not q_dict['modified_date']:
+        q_dict.pop('modified_date')
     if properties:
         f_dict.pop('properties')
     if modified_date:
         f_dict.pop('modified_date')
     ts_coll = db['time_series_result']
+
     ts1 = list(ts_coll.find(q_dict, f_dict))
+
+    json_dict = jsonable_encoder(ts1)
 
     # df1 = pd.DataFrame(ts1)
     # sio = io.StringIO()
     # df1.to_csv(sio, index=False)
     if compression == 'zstd':
         cctx = zstd.ZstdCompressor(level=1)
-        b_ts1 = json.dumps(ts1, default=default).encode()
+        b_ts1 = json.dumps(json_dict).encode()
         c_obj = cctx.compress(b_ts1)
 
         return Response(c_obj, media_type='application/zstd')
     else:
-        return ts1
+        return JSONResponse(json_dict)
 
 
+
+# dataset_id = '5f3d9362cc0f221ea31ba502'
 
 # r1 = requests.get('http://tethys-ts.duckdns.org/tethys/data/time_series_result?dataset_id=5f12547a2fae6caf4324a86a&site_id=5f125cff2fae6caf4322baa7&from_date=2020-01-01T00%3A00&compression=zstd')
 #
