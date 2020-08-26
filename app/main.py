@@ -154,7 +154,7 @@ async def get_sites(dataset_id: str, polygon: Polygon = None, compression: Optio
         return JSONResponse(json_dict)
 
 
-@app.get(base_url + 'time_series_result')
+@app.get(base_url + 'time_series_results')
 async def get_data(dataset_id: str, site_id: str, from_date: Optional[datetime.datetime] = None, to_date: Optional[datetime.datetime] = None, from_modified_date: Optional[datetime.datetime] = None, to_modified_date: Optional[datetime.datetime] = None, properties: Optional[bool] = False, modified_date: Optional[bool] = False, compression: Optional[Compress] = None):
     q_dict = {'dataset_id': ObjectId(dataset_id), 'site_id': ObjectId(site_id), 'from_date': {}, 'modified_date': {}}
     f_dict = {'_id': 0, 'site_id': 0, 'dataset_id': 0, 'properties': 0, 'modified_date': 0}
