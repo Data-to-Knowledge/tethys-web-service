@@ -1,6 +1,6 @@
 import os
 import io
-from typing import Optional, List
+from typing import Optional, List, Any
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 # import pandas as pd
@@ -11,7 +11,7 @@ import yaml
 import datetime
 from fastapi.responses import JSONResponse
 # import pickle
-import json
+import orjson
 from bson import json_util
 import zstandard as zstd
 from enum import Enum
@@ -28,10 +28,15 @@ db_dict = param['db']
 ## For testing
 # db_dict.update({'HOST': '127.0.0.1'})
 
-
 # def json_default(obj):
 #     if isinstance(obj, (datetime.date, datetime.datetime)):
 #         return obj.isoformat()
+
+class ORJSONResponse(JSONResponse):
+    media_type = "application/json"
+
+    def render(self, content: Any) -> bytes:
+        return orjson.dumps(content)
 
 
 class Dataset(BaseModel):
@@ -62,49 +67,10 @@ class Compress(str, Enum):
 
 base_url = '/tethys/data/'
 
-app = FastAPI()
+app = FastAPI(default_response_class=ORJSONResponse)
 
 client = MongoClient(db_dict['HOST'], password=db_dict['PASSWORD'], username=db_dict['USERNAME'], authSource=db_dict['DATABASE'])
 db = client[db_dict['DATABASE']]
-
-
-
-# @app.get(base_url + 'get_datasets')
-# async def get_datasets(feature: Optional[str] = None, parameter: Optional[str] = None, method: Optional[str] = None, processing_code: Optional[str] = None, owner: Optional[str] = None, aggregation_statistic: Optional[str] = None, frequency_interval: Optional[str] = None, utc_offset: Optional[str] = None):
-#     q_dict = {}
-#     if feature is not None:
-#         q_dict.update({'feature': feature})
-#
-#     ds1 = list(ds_coll.find(q_dict, {'_id': 0}))
-#
-#     return ds1
-
-
-# @app.post(base_url + 'sampling_sites')
-# async def get_sites(dataset: Dataset):
-#     q_dict = {'feature': dataset.feature, 'parameter': dataset.parameter, 'method': dataset.method, 'processing_code': dataset.processing_code, 'owner': dataset.owner, 'aggregation_statistic': dataset.aggregation_statistic, 'utc_offset': dataset.utc_offset}
-#     ds_coll = db['dataset']
-#     try:
-#         ds_id = ds_coll.find(q_dict, {'_id': 1}).limit(1)[0]['_id']
-#     except:
-#         raise ValueError('No dataset with those input parameters.')
-#
-#     site_ds_coll = db['site_dataset']
-#     site_ds1 = list(site_ds_coll.find({'dataset_id': ds_id}, {'site_id': 1, 'stats': 1}))
-#
-#     site_ids = [s['site_id'] for s in site_ds1]
-#
-#     site_coll = db['sampling_site']
-#     sites1 = list(site_coll.find({'_id': {'$in': site_ids}}))
-#
-#     for s in sites1:
-#         site_id = s['_id']
-#         [s.update(ds) for ds in site_ds1 if site_id == ds['site_id']]
-#         s.pop('_id')
-#         # s.pop('site_id')
-#         s['site_id'] = str(s['site_id'])
-#
-#     return sites1
 
 
 @app.get(base_url + 'datasets')
@@ -118,7 +84,6 @@ async def get_datasets():
     return ds1
 
 
-
 @app.post(base_url + 'sampling_sites')
 async def get_sites(dataset_id: str, polygon: Polygon = None, compression: Optional[Compress] = None):
     ds_coll = db['dataset']
@@ -128,12 +93,12 @@ async def get_sites(dataset_id: str, polygon: Polygon = None, compression: Optio
         raise ValueError('No dataset with those input parameters.')
 
     site_ds_coll = db['site_dataset']
-    site_ds1 = list(site_ds_coll.find({'dataset_id': ds_id}, {'site_id': 1, 'stats': 1}))
+    site_ds1 = list(site_ds_coll.find({'dataset_id': ds_id}, {'site_id': 1, 'stats': 1, 'modified_date': 1}))
 
     site_ids = [s['site_id'] for s in site_ds1]
 
     site_coll = db['sampling_site']
-    sites1 = list(site_coll.find({'_id': {'$in': site_ids}}))
+    sites1 = list(site_coll.find({'_id': {'$in': site_ids}}, {'modified_date': 0}))
 
     for s in sites1:
         site_id = s['_id']
@@ -142,16 +107,16 @@ async def get_sites(dataset_id: str, polygon: Polygon = None, compression: Optio
         # s.pop('site_id')
         s['site_id'] = str(s['site_id'])
 
-    json_dict = jsonable_encoder(sites1)
+    # json_dict = jsonable_encoder(sites1)
 
     if compression == 'zstd':
         cctx = zstd.ZstdCompressor(level=1)
-        b_ts1 = json.dumps(json_dict).encode()
+        b_ts1 = orjson.dumps(sites1)
         c_obj = cctx.compress(b_ts1)
 
         return Response(c_obj, media_type='application/zstd')
     else:
-        return JSONResponse(json_dict)
+        return sites1
 
 
 @app.get(base_url + 'time_series_results')
@@ -185,16 +150,16 @@ async def get_data(dataset_id: str, site_id: str, from_date: Optional[datetime.d
     # df1.to_csv(sio, index=False)
     if compression == 'zstd':
         cctx = zstd.ZstdCompressor(level=1)
-        b_ts1 = json.dumps(json_dict).encode()
+        b_ts1 = orjson.dumps(ts1)
         c_obj = cctx.compress(b_ts1)
 
         return Response(c_obj, media_type='application/zstd')
     else:
-        return JSONResponse(json_dict)
+        return ts1
 
 
 
-# dataset_id = '5f3d9362cc0f221ea31ba502'
+# dataset_id = '5f4626eb8319d1e2529a1d85'
 
 # r1 = requests.get('http://tethys-ts.duckdns.org/tethys/data/time_series_result?dataset_id=5f12547a2fae6caf4324a86a&site_id=5f125cff2fae6caf4322baa7&from_date=2020-01-01T00%3A00&compression=zstd')
 #
