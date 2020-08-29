@@ -92,16 +92,19 @@ async def get_sites(dataset_id: str, polygon: Optional[Polygon] = None, compress
     site_ds_coll = db['site_dataset']
     site_ds1 = list(site_ds_coll.find({'dataset_id': ds_id}, {'site_id': 1, 'stats': 1, 'modified_date': 1}))
 
-    site_ids = [s['site_id'] for s in site_ds1]
+    s_filter = {'_id': {'$in': [s['site_id'] for s in site_ds1]}}
+
+    if polygon is not None:
+        if polygon['type'] == 'Polygon':
+            s_filter.update({'geometry': {'$geoWithin': {'$geometry': polygon}}})
 
     site_coll = db['sampling_site']
-    sites1 = list(site_coll.find({'_id': {'$in': site_ids}}, {'modified_date': 0}))
+    sites1 = list(site_coll.find(s_filter, {'modified_date': 0}))
 
     for s in sites1:
         site_id = s['_id']
         [s.update(ds) for ds in site_ds1 if site_id == ds['site_id']]
         s.pop('_id')
-        # s.pop('site_id')
         s['site_id'] = str(s['site_id'])
 
     if compression == 'zstd':
@@ -152,7 +155,9 @@ async def get_data(dataset_id: str, site_id: str, from_date: Optional[datetime.d
 
 
 
-# dataset_id = '5f4626eb8319d1e2529a1d85'
+# dataset_id = '5f45fa5c58b447abed46aaa1'
+
+# polygon = { "type": "Polygon", "coordinates": [ [ [ 171.292647756681248, -43.254844129697048 ], [ 171.107202623712197, -43.325666735392275 ], [ 171.011934299832035, -43.465510662614861 ], [ 171.024628891095404, -43.70951765497994 ], [ 171.21596178164009, -43.83305091410741 ], [ 171.69598760183257, -43.841042623137056 ], [ 172.025504177835558, -43.650202125886544 ], [ 172.166237752900315, -43.514369755303811 ], [ 172.03493330356423, -43.319200072122833 ], [ 171.906877696174263, -43.218719789116193 ], [ 171.508691676273401, -43.176597096555604 ], [ 171.508691676273401, -43.176597096555604 ], [ 171.292647756681248, -43.254844129697048 ] ] ] }
 
 # r1 = requests.get('http://tethys-ts.duckdns.org/tethys/data/time_series_result?dataset_id=5f12547a2fae6caf4324a86a&site_id=5f125cff2fae6caf4322baa7&from_date=2020-01-01T00%3A00&compression=zstd')
 #
