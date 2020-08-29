@@ -94,10 +94,10 @@ async def get_sites(dataset_id: str, polygon: Optional[Polygon] = None, compress
 
     s_filter = {'_id': {'$in': [s['site_id'] for s in site_ds1]}}
 
-    if polygon is not None:
-        polygon_dict = **polygon.dict()
-        if polygon_dict['type'] == 'Polygon':
-            s_filter.update({'geometry': {'$geoWithin': {'$geometry': polygon_dict}}})
+    # if polygon is not None:
+    #     polygon_dict = **polygon.dict()
+    #     if polygon_dict['type'] == 'Polygon':
+    #         s_filter.update({'geometry': {'$geoWithin': {'$geometry': polygon_dict}}})
 
     site_coll = db['sampling_site']
     sites1 = list(site_coll.find(s_filter, {'modified_date': 0}))
