@@ -28,9 +28,6 @@ db_dict = param['db']
 ## For testing
 # db_dict.update({'HOST': '127.0.0.1'})
 
-# def json_default(obj):
-#     if isinstance(obj, (datetime.date, datetime.datetime)):
-#         return obj.isoformat()
 
 class ORJSONResponse(JSONResponse):
     media_type = "application/json"
