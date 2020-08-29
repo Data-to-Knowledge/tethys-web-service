@@ -107,8 +107,6 @@ async def get_sites(dataset_id: str, polygon: Optional[Polygon] = None, compress
         # s.pop('site_id')
         s['site_id'] = str(s['site_id'])
 
-    # json_dict = jsonable_encoder(sites1)
-
     if compression == 'zstd':
         cctx = zstd.ZstdCompressor(level=1)
         b_ts1 = orjson.dumps(sites1)
@@ -142,8 +140,6 @@ async def get_data(dataset_id: str, site_id: str, from_date: Optional[datetime.d
     ts_coll = db['time_series_result']
 
     ts1 = list(ts_coll.find(q_dict, f_dict))
-
-    # json_dict = jsonable_encoder(ts1)
 
     # df1 = pd.DataFrame(ts1)
     # sio = io.StringIO()
