@@ -26,10 +26,10 @@ services:
     volumes:
       - "/media/sdb1/Projects/git/tethys/tethys-db-update/input.yml:/input.yml"
     depends_on:
-      - "db-initialize"
+      - "db"
   web-service:
     image: tethysts/tethys-web-service:dev
     depends_on:
-      - "db-initialize"
+      - "db"
     ports:
       - "80:80"
