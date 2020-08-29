@@ -59,7 +59,7 @@ class Dataset(BaseModel):
 
 class Polygon(BaseModel):
     type: str
-    coordinates: List[float]
+    coordinates: List
 
 class Compress(str, Enum):
     zstd = 'zstd'
@@ -85,7 +85,7 @@ async def get_datasets():
 
 
 @app.post(base_url + 'sampling_sites')
-async def get_sites(dataset_id: str, polygon: Polygon = None, compression: Optional[Compress] = None):
+async def get_sites(dataset_id: str, polygon: Optional[Polygon] = None, compression: Optional[Compress] = None):
     ds_coll = db['dataset']
     try:
         ds_id = ds_coll.find({'_id': ObjectId(dataset_id)}, {'_id': 1}).limit(1)[0]['_id']
