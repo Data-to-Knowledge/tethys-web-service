@@ -143,7 +143,7 @@ async def get_data(dataset_id: str, site_id: str, from_date: Optional[datetime.d
 
     ts1 = list(ts_coll.find(q_dict, f_dict))
 
-    json_dict = jsonable_encoder(ts1)
+    # json_dict = jsonable_encoder(ts1)
 
     # df1 = pd.DataFrame(ts1)
     # sio = io.StringIO()
