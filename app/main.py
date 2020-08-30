@@ -102,7 +102,7 @@ async def get_sites(dataset_id: str, geometry: Optional[Geo] = None, distance: f
             if distance is None:
                 raise ValueError('If a Point geometery is passed, then the distance parameter must be a float')
             else:
-                s_filter.update({'geometry': {'$nearSphere': {'$geometry': geometry_dict}, '$maxDistance': distance}})
+                s_filter.update({'geometry': {'$nearSphere': {'$geometry': geometry_dict},'$maxDistance': distance}})
 
     site_coll = db['sampling_site']
     sites1 = list(site_coll.find(s_filter, {'modified_date': 0}))
