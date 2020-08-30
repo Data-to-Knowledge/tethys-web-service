@@ -54,7 +54,7 @@ class Dataset(BaseModel):
     # price: float
     # tax: Optional[float] = None
 
-class Polygon(BaseModel):
+class Geo(BaseModel):
     type: str
     coordinates: List
 
@@ -82,7 +82,7 @@ async def get_datasets():
 
 
 @app.post(base_url + 'sampling_sites')
-async def get_sites(dataset_id: str, polygon: Optional[Polygon] = None, compression: Optional[Compress] = None):
+async def get_sites(dataset_id: str, geometry: Optional[Geo] = None, compression: Optional[Compress] = None):
     ds_coll = db['dataset']
     try:
         ds_id = ds_coll.find({'_id': ObjectId(dataset_id)}, {'_id': 1}).limit(1)[0]['_id']
@@ -94,10 +94,10 @@ async def get_sites(dataset_id: str, polygon: Optional[Polygon] = None, compress
 
     s_filter = {'_id': {'$in': [s['site_id'] for s in site_ds1]}}
 
-    # if polygon is not None:
-    #     polygon_dict = **polygon.dict()
-    #     if polygon_dict['type'] == 'Polygon':
-    #         s_filter.update({'geometry': {'$geoWithin': {'$geometry': polygon_dict}}})
+    if geometry is not None:
+        geometry_dict = {**geometry.dict()}
+        if geometry_dict['type'] == 'Polygon':
+            s_filter.update({'geometry': {'$geoWithin': {'$geometry': geometry_dict}}})
 
     site_coll = db['sampling_site']
     sites1 = list(site_coll.find(s_filter, {'modified_date': 0}))
