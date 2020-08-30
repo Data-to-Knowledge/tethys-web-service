@@ -100,7 +100,7 @@ async def get_sites(dataset_id: str, geometry: Optional[Geo] = None, distance: f
             s_filter.update({'geometry': {'$geoWithin': {'$geometry': geometry_dict}}})
         elif (geometry_dict['type'] == 'Point'):
             if distance is None:
-                return 'If a Point geometery is passed, then the distance parameter must be a float'
+                raise ValueError('If a Point geometery is passed, then the distance parameter must be a float')
             else:
                 s_filter.update({'geometry': {'$nearSphere': {'$geometry': geometry_dict}, '$maxDistance': distance}})
 
