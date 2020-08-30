@@ -82,7 +82,7 @@ async def get_datasets():
 
 
 @app.post(base_url + 'sampling_sites')
-async def get_sites(dataset_id: str, geometry: Optional[Geo] = None, distance: float = None, compression: Optional[Compress] = None):
+async def get_sites(dataset_id: str, geometry: Optional[Geo] = None, distance: Optional[float] = None, properties: Optional[bool] = False, compression: Optional[Compress] = None):
     ds_coll = db['dataset']
     try:
         ds_id = ds_coll.find({'_id': ObjectId(dataset_id)}, {'_id': 1}).limit(1)[0]['_id']
@@ -104,8 +104,12 @@ async def get_sites(dataset_id: str, geometry: Optional[Geo] = None, distance: f
             else:
                 return 'If a Point geometery is passed, then the distance parameter must be a float'
 
+    f_filter = {'modified_date': 0, 'properties': 0}
+    if properties:
+        f_filter.pop('properties')
+
     site_coll = db['sampling_site']
-    sites1 = list(site_coll.find(s_filter, {'modified_date': 0}))
+    sites1 = list(site_coll.find(s_filter, f_filter))
 
     for s in sites1:
         site_id = s['_id']
