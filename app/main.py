@@ -27,7 +27,7 @@ db_dict = param['db']
 
 ## For testing
 # db_dict.update({'HOST': '127.0.0.1'})
-db_dict.update({'HOST': 'tethys-ts.xyz'})
+
 
 class ORJSONResponse(JSONResponse):
     media_type = "application/json"
