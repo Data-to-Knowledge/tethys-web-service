@@ -36,18 +36,18 @@ class ORJSONResponse(JSONResponse):
         return orjson.dumps(content)
 
 
-class Dataset(BaseModel):
-    feature: str
-    parameter: str
-    method: str
-    processing_code: str
-    owner: str
-    aggregation_statistic: str
-    frequency_interval: str
-    utc_offset: str
-    units: Optional[str] = None
-    license: Optional[str] = None
-    result_type: Optional[str] = None
+# class Dataset(BaseModel):
+#     feature: str
+#     parameter: str
+#     method: str
+#     processing_code: str
+#     owner: str
+#     aggregation_statistic: str
+#     frequency_interval: str
+#     utc_offset: str
+#     units: Optional[str] = None
+#     license: Optional[str] = None
+#     result_type: Optional[str] = None
 
     # name: str
     # description: Optional[str] = None
