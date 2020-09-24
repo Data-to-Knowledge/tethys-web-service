@@ -164,6 +164,46 @@ async def get_data(dataset_id: str, site_id: str, from_date: Optional[datetime.d
         return ts1
 
 
+@app.get(base_url + 'time_series_simulation_dates')
+async def get_data(dataset_id: str, site_id: str):
+    ts_coll = db['time_series_simulation']
+
+    ts1 = list(ts_coll.aggregate([{'$match': {'site_id': ObjectId(site_id), 'dataset_id': ObjectId(dataset_id)}}, {'$group': {'_id': None, 'simulation_dates': {'$push': '$simulation_date'}}}, {'$project': {'_id': 0, 'simulation_dates': 1}}]))
+
+    ts2 = ts1[0]['simulation_dates']
+
+    return ts2
+
+
+@app.get(base_url + 'time_series_simulation')
+async def get_data(dataset_id: str, site_id: str, from_simulation_date: Optional[datetime.datetime] = None, to_simulation_date: Optional[datetime.datetime] = None, properties: Optional[bool] = False, modified_date: Optional[bool] = False, compression: Optional[Compress] = None):
+    q_dict = {'dataset_id': ObjectId(dataset_id), 'site_id': ObjectId(site_id), 'simulation_date': {}}
+    f_dict = {'_id': 0, 'site_id': 0, 'dataset_id': 0, 'properties': 0, 'modified_date': 0}
+    if from_simulation_date is not None:
+        q_dict['simulation_date'].update({'$gte': from_simulation_date})
+    if to_simulation_date is not None:
+        q_dict['simulation_date'].update({'$lte': to_simulation_date})
+    if not q_dict['simulation_date']:
+        q_dict.pop('simulation_date')
+    if properties:
+        f_dict.pop('properties')
+    if modified_date:
+        f_dict.pop('modified_date')
+    ts_coll = db['time_series_simulation']
+
+    ts1 = list(ts_coll.find(q_dict, f_dict))
+
+    # df1 = pd.DataFrame(ts1)
+    # sio = io.StringIO()
+    # df1.to_csv(sio, index=False)
+    if compression == 'zstd':
+        cctx = zstd.ZstdCompressor(level=1)
+        b_ts1 = orjson.dumps(ts1)
+        c_obj = cctx.compress(b_ts1)
+
+        return Response(c_obj, media_type='application/zstd')
+    else:
+        return ts1
 
 # dataset_id = '5f45fa5c58b447abed46aaa1'
 
