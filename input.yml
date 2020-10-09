@@ -177,23 +177,23 @@ datasets:
     frequency_interval: '24H'
     utc_offset: '-3H'
 
-  - feature: atmosphere
-    parameter: temperature
-    method: sensor_recording
-    processing_code: quality_controlled_data
-    owner: NIWA
-    aggregation_statistic: mean
-    frequency_interval: '24H'
-    utc_offset: '-3H'
-
-  - feature: atmosphere
-    parameter: relative_humidity
-    method: sensor_recording
-    processing_code: quality_controlled_data
-    owner: NIWA
-    aggregation_statistic: mean
-    frequency_interval: '24H'
-    utc_offset: '-3H'
+  # - feature: atmosphere
+  #   parameter: temperature
+  #   method: sensor_recording
+  #   processing_code: quality_controlled_data
+  #   owner: NIWA
+  #   aggregation_statistic: mean
+  #   frequency_interval: '24H'
+  #   utc_offset: '-3H'
+  #
+  # - feature: atmosphere
+  #   parameter: relative_humidity
+  #   method: sensor_recording
+  #   processing_code: quality_controlled_data
+  #   owner: NIWA
+  #   aggregation_statistic: mean
+  #   frequency_interval: '24H'
+  #   utc_offset: '-3H'
 
 
 
