@@ -24,7 +24,7 @@ services:
   updater:
     image: tethysts/tethys-db-updater:dev
     volumes:
-      - "/media/sdb1/Projects/git/tethys/tethys-db-update/input.yml:/input.yml"
+      - "/home/mike/git/tethys/tethys-web-service/input.yml:/input.yml"
     depends_on:
       - "db"
   web-service:
