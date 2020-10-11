@@ -85,37 +85,43 @@ async def get_datasets():
 async def get_sites(dataset_id: str, geometry: Optional[Geo] = None, distance: Optional[float] = None, properties: Optional[bool] = False, compression: Optional[Compress] = None):
     ds_coll = db['dataset']
     try:
-        ds_id = ds_coll.find({'_id': ObjectId(dataset_id)}, {'_id': 1}).limit(1)[0]['_id']
+        ds_id = ds_coll.find_one({'_id': ObjectId(dataset_id)}, {'_id': 1})['_id']
     except:
         raise ValueError('No dataset with those input parameters.')
 
-    site_ds_coll = db['site_dataset']
-    site_ds1 = list(site_ds_coll.find({'dataset_id': ds_id}, {'site_id': 1, 'stats': 1, 'modified_date': 1}))
-
-    s_filter = {'_id': {'$in': [s['site_id'] for s in site_ds1]}}
+    match_filter = {'dataset_id': ds_id}
 
     if geometry is not None:
         geometry_dict = {**geometry.dict()}
         if geometry_dict['type'] == 'Polygon':
-            s_filter.update({'geometry': {'$geoWithin': {'$geometry': geometry_dict}}})
+            match_filter.update({'geometry': {'$geoWithin': {'$geometry': geometry_dict}}})
         elif (geometry_dict['type'] == 'Point'):
             if isinstance(distance, (float, int)):
-                s_filter.update({'geometry': {'$nearSphere': {'$geometry': geometry_dict, '$maxDistance': distance}}})
+                match_filter.update({'geometry': {'$nearSphere': {'$geometry': geometry_dict, '$maxDistance': distance}}})
             else:
                 return 'If a Point geometery is passed, then the distance parameter must be a float'
 
-    f_filter = {'modified_date': 0, 'properties': 0}
+    project_filter = {'_id': 0, 'site_id': {'$toString': '$site_id'}, 'ref': '$site_combo.ref', 'modified_date': 1, 'stats': 1, 'geometry': '$site_combo.geometry', 'virtual_site': '$site_combo.virtual_site'}
     if properties:
-        f_filter.pop('properties')
+        project_filter.update({'properties': '$site_combo.properties'})
 
-    site_coll = db['sampling_site']
-    sites1 = list(site_coll.find(s_filter, f_filter))
+    site_ds_coll = db['site_dataset']
 
-    for s in sites1:
-        site_id = s['_id']
-        [s.update(ds) for ds in site_ds1 if site_id == ds['site_id']]
-        s.pop('_id')
-        s['site_id'] = str(s['site_id'])
+    q_list = [
+                {'$match': match_filter},
+                {
+                    '$lookup':{
+                        'from': 'sampling_site',
+                        'localField': 'site_id',
+                        'foreignField': '_id',
+                        'as': 'site_combo'
+                    }
+                },
+                {'$unwind': "$site_combo" },
+                {'$project': project_filter}
+            ]
+
+    sites1 = list(site_ds_coll.aggregate(q_list))
 
     if compression == 'zstd':
         cctx = zstd.ZstdCompressor(level=1)
