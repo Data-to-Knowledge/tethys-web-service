@@ -101,7 +101,7 @@ async def get_sites(dataset_id: str, geometry: Optional[Geo] = None, distance: O
             else:
                 return 'If a Point geometery is passed, then the distance parameter must be a float'
 
-    project_filter = {'_id': 0, 'site_id': {'$toString': '$site_id'}, 'ref': '$site_combo.ref', 'modified_date': 1, 'stats': 1, 'geometry': '$site_combo.geometry', 'virtual_site': '$site_combo.virtual_site'}
+    project_filter = {'_id': 0, 'site_id': {'$toString': '$site_id'}, 'name': '$site_combo.name', 'ref': '$site_combo.ref', 'modified_date': 1, 'stats': 1, 'geometry': '$site_combo.geometry', 'virtual_site': '$site_combo.virtual_site'}
     if properties:
         project_filter.update({'properties': '$site_combo.properties'})
 
