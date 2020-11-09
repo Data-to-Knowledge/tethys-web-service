@@ -1,15 +1,228 @@
 scheduling:
   delay: 12
-  frequency: 86400
+  # every: hour
+  # at: ':01'
+
+# from_mod_date: '2020-09-30T00:00Z'
 
 datasets:
-  - feature: atmosphere
-    parameter: precipitation
+  - feature: waterway
+    parameter: streamflow
     method: sensor_recording
-    processing_code: '1'
+    processing_code: raw_data
     owner: ECan
-    aggregation_statistic: cumulative
+    aggregation_statistic: mean
     frequency_interval: '1H'
     utc_offset: '0H'
 
-sites: ['217810']
+  - 'feature': 'atmosphere'
+    'parameter': 'precipitation'
+    'method': 'sensor_recording'
+    'processing_code': 'raw_data'
+    'owner': 'ECan'
+    'aggregation_statistic': 'cumulative'
+    'frequency_interval': '1H'
+    'utc_offset': '0H'
+
+  - 'feature': 'atmosphere'
+    'parameter': 'precipitation'
+    'method': 'sensor_recording'
+    'processing_code': 'quality_controlled_data'
+    'owner': 'ECan'
+    'aggregation_statistic': 'cumulative'
+    'frequency_interval': '1H'
+    'utc_offset': '0H'
+
+  - 'feature': 'waterway'
+    'parameter': 'streamflow'
+    'method': 'sensor_recording'
+    'processing_code': 'quality_controlled_data'
+    'owner': 'ECan'
+    'aggregation_statistic': 'mean'
+    'frequency_interval': '1H'
+    'utc_offset': '0H'
+
+  - 'feature': 'groundwater'
+    'parameter': 'groundwater_depth'
+    'method': 'sensor_recording'
+    'processing_code': 'quality_controlled_data'
+    'owner': 'ECan'
+    'aggregation_statistic': 'mean'
+    'frequency_interval': '1H'
+    'utc_offset': '0H'
+
+  - 'feature': 'waterway'
+    'parameter': 'gage_height'
+    'method': 'sensor_recording'
+    'processing_code': 'quality_controlled_data'
+    'owner': 'ECan'
+    'aggregation_statistic': 'mean'
+    'frequency_interval': '1H'
+    'utc_offset': '0H'
+
+  - 'owner': 'ECan'
+    'feature': 'waterway'
+    'parameter': 'gage_height'
+    'method': 'field_activity'
+    'processing_code': 'quality_controlled_data'
+    'aggregation_statistic': 'sporadic'
+    'frequency_interval': 'T'
+    'utc_offset': '0H'
+
+  - 'owner': 'ECan'
+    'feature': 'waterway'
+    'parameter': 'streamflow'
+    'method': 'field_activity'
+    'processing_code': 'quality_controlled_data'
+    'aggregation_statistic': 'sporadic'
+    'frequency_interval': 'T'
+    'utc_offset': '0H'
+
+  - 'owner': 'ECan'
+    'feature': 'waterway'
+    'parameter': 'temperature'
+    'method': 'field_activity'
+    'processing_code': 'quality_controlled_data'
+    'aggregation_statistic': 'sporadic'
+    'frequency_interval': 'T'
+    'utc_offset': '0H'
+
+  - 'owner': 'ECan'
+    'feature': 'groundwater'
+    'parameter': 'groundwater_depth'
+    'method': 'field_activity'
+    'processing_code': 'quality_controlled_data'
+    'aggregation_statistic': 'sporadic'
+    'frequency_interval': 'T'
+    'utc_offset': '0H'
+
+  - 'owner': 'ECan'
+    'feature': 'still_waters'
+    'parameter': 'gage_height'
+    'method': 'sensor_recording'
+    'processing_code': 'quality_controlled_data'
+    'aggregation_statistic': 'mean'
+    'frequency_interval': '1H'
+    'utc_offset': '0H'
+
+  - 'owner': 'ECan'
+    'feature': 'waterway'
+    'parameter': 'temperature'
+    'method': 'sensor_recording'
+    'processing_code': 'quality_controlled_data'
+    'aggregation_statistic': 'mean'
+    'frequency_interval': '1H'
+    'utc_offset': '0H'
+
+  - feature: waterway
+    parameter: gage_height
+    method: sensor_recording
+    processing_code: quality_controlled_data
+    owner: NIWA
+    aggregation_statistic: mean
+    frequency_interval: '1H'
+    utc_offset: '0H'
+
+  - feature: waterway
+    parameter: streamflow
+    method: sensor_recording
+    processing_code: quality_controlled_data
+    owner: NIWA
+    aggregation_statistic: mean
+    frequency_interval: '1H'
+    utc_offset: '0H'
+
+  # - feature: atmosphere
+  #   parameter: precipitation
+  #   method: sensor_recording
+  #   processing_code: quality_controlled_data
+  #   owner: NIWA
+  #   aggregation_statistic: cumulative
+  #   frequency_interval: '1H'
+  #   utc_offset: '0H'
+  #
+  # - feature: atmosphere
+  #   parameter: global_radiation
+  #   method: sensor_recording
+  #   processing_code: quality_controlled_data
+  #   owner: NIWA
+  #   aggregation_statistic: mean
+  #   frequency_interval: '1H'
+  #   utc_offset: '0H'
+  #
+  # - feature: atmosphere
+  #   parameter: temperature
+  #   method: sensor_recording
+  #   processing_code: quality_controlled_data
+  #   owner: NIWA
+  #   aggregation_statistic: mean
+  #   frequency_interval: '1H'
+  #   utc_offset: '0H'
+  #
+  # - feature: atmosphere
+  #   parameter: relative_humidity
+  #   method: sensor_recording
+  #   processing_code: quality_controlled_data
+  #   owner: NIWA
+  #   aggregation_statistic: mean
+  #   frequency_interval: '1H'
+  #   utc_offset: '0H'
+  #
+  # - feature: atmosphere
+  #   parameter: precipitation
+  #   method: sensor_recording
+  #   processing_code: quality_controlled_data
+  #   owner: NIWA
+  #   aggregation_statistic: cumulative
+  #   frequency_interval: '24H'
+  #   utc_offset: '-3H'
+  #
+  # - feature: atmosphere
+  #   parameter: temperature
+  #   method: sensor_recording
+  #   processing_code: quality_controlled_data
+  #   owner: NIWA
+  #   aggregation_statistic: min
+  #   frequency_interval: '24H'
+  #   utc_offset: '-3H'
+  #
+  # - feature: atmosphere
+  #   parameter: temperature
+  #   method: sensor_recording
+  #   processing_code: quality_controlled_data
+  #   owner: NIWA
+  #   aggregation_statistic: max
+  #   frequency_interval: '24H'
+  #   utc_offset: '-3H'
+
+  # - feature: atmosphere
+  #   parameter: temperature
+  #   method: sensor_recording
+  #   processing_code: quality_controlled_data
+  #   owner: NIWA
+  #   aggregation_statistic: mean
+  #   frequency_interval: '24H'
+  #   utc_offset: '-3H'
+  #
+  # - feature: atmosphere
+  #   parameter: relative_humidity
+  #   method: sensor_recording
+  #   processing_code: quality_controlled_data
+  #   owner: NIWA
+  #   aggregation_statistic: mean
+  #   frequency_interval: '24H'
+  #   utc_offset: '-3H'
+
+
+
+# sites: ['217810', '227810', '66401', '66402']
+
+# remotes:
+#     - connection_config:
+#         service_name: 's3'
+#         endpoint_url: https://s3.us-west-002.backblazeb2.com
+#         aws_access_key_id: 00203ccd53f4ded0000000012
+#         aws_secret_access_key: K002Eb/ueEo/6Ru9WJJnD9QQaAkNXEw
+#       bucket: waimak-forecast
+#       delimiter: /
+#       scheduling: hourly
